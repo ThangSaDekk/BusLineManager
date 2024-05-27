@@ -74,7 +74,7 @@ class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Ret
         businfor_instance = BusInfor.objects.get(pk=pk)
         if user.id == businfor_instance.account.id:
             c = businfor_instance.busroute_set.create(businfor=businfor_instance.id,
-                                                      code=f'{request.data.get('code')}_{businfor_instance.code}',
+                                                      code=f"{request.data.get('code')}_{businfor_instance.code}",
                                                       active=True, starting_point=request.data.get('starting_point'),
                                                       destination=request.data.get('destination'),
                                                       active_time=request.data.get('active_time'),
@@ -169,7 +169,7 @@ class BusRouteViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPI
         busroute_instance = self.get_object()
         if user.id == busroute_instance.businfor.account.id:
             busline = busroute_instance.busline_set.create(busroute=busroute_instance,
-                                                           code=f'{busroute_instance.code}_{request.data.get('code')}',
+                                                           code=f"{busroute_instance.code}_{request.data.get('code')}",
                                                            active=request.data.get('active'),
                                                            departure_date_time=request.data.get('departure_date_time'),
                                                            arrival_excepted=request.data.get('arrival_excepted')
