@@ -9,10 +9,12 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 import cloudinary
+from dotenv import load_dotenv
 
+load_dotenv()
 cloudinary.config(
     cloud_name="dh1irfap0",
     api_key="362769244261142",
@@ -96,16 +98,26 @@ WSGI_APPLICATION = 'buslinesproject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'buslinedb',
+#         'USER': 'root',
+#         'PASSWORD': 'thang123',
+#         'HOST': ''
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'buslinedb',
-        'USER': 'root',
-        'PASSWORD': 'thang123',
-        'HOST': ''
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.environ.get("MYSQL_DATABASE", "buslinedb"),
+        "USER": os.environ.get("MYSQL_USER", "root"),
+        "PASSWORD": os.environ.get("MYSQL_PASSWORD", "thang123"),
+        "HOST": os.environ.get("MYSQL_HOST", ""),
+        "PORT": os.environ.get("MYSQL_PORT", 3306),
     }
 }
-
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -146,4 +158,4 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CLIENT_ID = 'zXOlpeQE9aStqKsm3zWSn9CS5KiEdRI8mYC8iHuO'
-    # CLIENT_SECRET = 'c6fTEjMddnpr46eCyvijYoU5QCtv1ti9WovcJJZhLZLGSTmT35k6XzW1xcGsppgQZOrm884ZfM4oEuDzzHXWR6WMOvDJKw8pnYrN4uWoAIKxxlM7q2E9WlMbG1SwQDYC'
+# CLIENT_SECRET = 'c6fTEjMddnpr46eCyvijYoU5QCtv1ti9WovcJJZhLZLGSTmT35k6XzW1xcGsppgQZOrm884ZfM4oEuDzzHXWR6WMOvDJKw8pnYrN4uWoAIKxxlM7q2E9WlMbG1SwQDYC'
