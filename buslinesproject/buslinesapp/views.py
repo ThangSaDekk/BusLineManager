@@ -11,7 +11,7 @@ from .permission import IsBusOwnerRole, IsAdminRole, IsCustomerRole, IsEmployeeR
 
 # [get] lấy thông tin nhà xe /businfors/
 class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.RetrieveAPIView):
-    queryset = BusInfor.objects.filter(active=True)
+    queryset = BusInfor.objects.filter(active=True).order_by('-bias')
     serializer_class = serializers.BusInforSerializer
     pagination_class = pagination.BusInforPaginator
 
@@ -66,7 +66,7 @@ class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Ret
                     setattr(businfor, k, v)
             businfor.save()
 
-        return Response(serializers.BusInforSerializer(businfor).data)
+        return Response(serializers.BusInforDetailsSerializer(businfor).data)
 
     @action(methods=['post'], url_path='busroutes', detail=True)
     def add_busroutes(self, request, pk):
