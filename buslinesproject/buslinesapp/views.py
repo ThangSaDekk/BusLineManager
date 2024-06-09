@@ -1,3 +1,4 @@
+from queue import Empty
 from statistics import mean
 
 from django.shortcuts import _get_queryset
@@ -139,8 +140,6 @@ class BusRouteViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPI
             self.perform_update(serializer)
 
             if getattr(instance, '_prefetched_objects_cache', None):
-                # If 'prefetch_related' has been applied to a queryset, we need to
-                # forcibly invalidate the prefetch cache on the instance.
                 instance._prefetched_objects_cache = {}
 
             return Response(serializer.data)
@@ -159,35 +158,42 @@ class BusRouteViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPI
             queryset = queryset.filter(destination__contains=destination)
         return queryset
 
-    @action(methods=['get'], url_path='buslines', detail=True)
-    def get_buslines(self, request, pk):
-        busline = self.get_object().busline_set.filter(active=True)
-        return Response(serializers.BusLineSerializer(busline, many=True).data, status.HTTP_200_OK)
-
-    @action(methods=['post'], url_path='buslines', detail=True)
-    def create_buslines(self, request, pk):
-        user = request.user
+    @action(methods=['get', 'post'], url_path='buslines', detail=True)
+    def get_post_buslines(self, request, pk=None):
         busroute_instance = self.get_object()
-        if user.id == busroute_instance.businfor.account.id:
-            busline = busroute_instance.busline_set.create(busroute=busroute_instance,
-                                                           code=f"{busroute_instance.code}_{request.data.get('code')}",
-                                                           active=request.data.get('active'),
-                                                           departure_date_time=request.data.get('departure_date_time'),
-                                                           arrival_excepted=request.data.get('arrival_excepted')
-                                                           )
-            return Response(serializers.BusLineSerializer(busline).data, status.HTTP_201_CREATED)
-        else:
-            return Response({"detail": "You don't have permission to post busline for orther busroute"},
-                            status.HTTP_403_FORBIDDEN)
+
+        if request.method == 'GET':
+            buslines = busroute_instance.busline_set.filter(active=True)
+            paginator = pagination.BusLinePaginator()
+            paginated_buslines = paginator.paginate_queryset(buslines, request)
+            serialized_buslines = serializers.BusLineSerializer(paginated_buslines, many=True).data
+            return paginator.get_paginated_response(serialized_buslines)
+
+        elif request.method == 'POST':
+            user = request.user
+            if user.id == busroute_instance.businfor.account.id:
+                busline = busroute_instance.busline_set.create(
+                    busroute=busroute_instance,
+                    code=f"{busroute_instance.code}_{request.data.get('code')}",
+                    active=request.data.get('active'),
+                    departure_date_time=request.data.get('departure_date_time'),
+                    arrival_excepted=request.data.get('arrival_excepted')
+                )
+                serialized_busline = serializers.BusLineSerializer(busline).data
+                return Response(serialized_busline, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"detail": "You don't have permission to post busline for other busroute"},
+                                status=status.HTTP_403_FORBIDDEN)
 
 
 class BusLineDetailsViewSets(viewsets.ViewSet, generics.RetrieveUpdateAPIView):
     queryset = BusLine.objects.all()
     serializer_class = serializers.BusLineSerializer
+    permission_classes = [permissions.AllowAny]
 
     def get_permissions(self):
-        if self.action == 'list':
-            self.permission_classes = [permissions.AllowAny]
+        if self.action == 'get_add_seats':
+            self.permission_classes = [permissions.IsAuthenticated]
         elif self.action in ['partial_update', 'destroy']:
             self.permission_classes = [IsBusOwnerRole]
         return super().get_permissions()
@@ -198,7 +204,7 @@ class BusLineDetailsViewSets(viewsets.ViewSet, generics.RetrieveUpdateAPIView):
         if user.id == instance.busroute.businfor.account.id:
             partial = kwargs.pop('partial', False)
             data = request.data
-            allow_fields = ['arrival_actual']
+            allow_fields = ['arrival_actual', 'active']
             for k in data:
                 if k not in allow_fields:
                     return Response({"detail": "You don't have permission to patch orther attribute"})
@@ -219,21 +225,31 @@ class BusLineDetailsViewSets(viewsets.ViewSet, generics.RetrieveUpdateAPIView):
         else:
             return Response({"detail": "You don't have permission to patch orther busline"}, status.HTTP_403_FORBIDDEN)
 
-    @action(methods=['post'], url_path='seats', detail=True)
-    def add_seats(self, request, pk):
+    @action(methods=['get', 'post'], url_path='seats', detail=True)
+    def get_add_seats(self, request, pk):
         busline_instance = self.get_object()
-        c = busline_instance.seat_set.create(busline=busline_instance,
-                                             code=str(busline_instance.code) + "_" + request.data.get('code'),
-                                             active=True,
-                                             status='available')
-        return Response(serializers.SeatSerializer(c).data, status=status.HTTP_201_CREATED)
+        if request.method == 'POST':
+            c = busline_instance.seat_set.create(busline=busline_instance,
+                                                 code=str(busline_instance.code) + "_" + request.data.get('code'),
+                                                 active=True,
+                                                 status='available')
+            return Response(serializers.SeatSerializer(c).data, status=status.HTTP_201_CREATED)
+        if request.method == 'GET':
+            seats = busline_instance.seat_set.filter(active=True)
+            serialized_seats = serializers.SeatSerializer(seats, many=True).data
+            return Response(serialized_seats, status.HTTP_200_OK)
 
 
-class SeatViewSets(viewsets.ViewSet, generics.UpdateAPIView, generics.DestroyAPIView, generics.RetrieveAPIView,
-                   generics.ListAPIView):
+class SeatViewSets(viewsets.ViewSet, generics.UpdateAPIView, generics.DestroyAPIView):
     queryset = Seat.objects.all()
     serializer_class = serializers.SeatSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action == 'add_bill_and_ticket':
+            self.permission_classes = [permissions.IsAuthenticated]
+        elif self.action == 'list':
+            self.permission_classes = [permissions.AllowAny]
+        return super().get_permissions()
 
     @staticmethod
     def generate_random_code(l):
@@ -242,42 +258,42 @@ class SeatViewSets(viewsets.ViewSet, generics.UpdateAPIView, generics.DestroyAPI
         characters = string.ascii_letters + string.digits
         return ''.join(secrets.choice(characters) for _ in range(l))
 
-    @action(methods=['post'], url_path='tickets', detail=True)
-    def add_bill_and_ticket(self, request, pk):
-        seat_instance = self.get_object()
+    @action(methods=['post'], url_path='tickets', detail=False)
+    def add_bill_and_ticket(self, request):
+        seat_ids = request.data.get('chose_seats_ids', [])
 
-        # Lấy thông tin người dùng
         customer = request.user
-        seat_ids = request.data.get('seat_ids', [])
+        if seat_ids is not Empty:
+            seat_instances = []
+            for seat_id in seat_ids:
+                seat = Seat.objects.get(id=seat_id)
+                seat_instances.append(seat)
+            busroute_instance = seat_instances[0].busline.busroute
+            total_fare = busroute_instance.fare * len(seat_instances)
 
-        # Kiểm tra và lấy thông tin các ghế
-        seats = Seat.objects.filter(id__in=seat_ids, busline=seat_instance.busline)
-
-        # Tính tổng tiền vé
-        busroute = seat_instance.busline.busroute
-        total_fare = busroute.fare * len(seats)
-
-        # Tạo hóa đơn mới
-        bill = Bill.objects.create(
-            code=self.generate_random_code(7),
-            payment_content=f"Payment for {len(seats)} tickets",
-            total=total_fare
-        )
-
-        # Tạo vé và gán vào hóa đơn
-        tickets = []
-        for seat in seats:
-            ticket = Ticket.objects.create(
-                customer=customer,
-                seat=seat,
-                bill=bill,
-                code=self.generate_random_code(10)
+            # Tạo hóa đơn mới
+            bill = Bill.objects.create(
+                code=self.generate_random_code(7),
+                payment_content=f"Payment for {len(seat_instances)} tickets",
+                total=total_fare
             )
-            tickets.append(ticket)
 
-        # Trả về dữ liệu vé
-        ticket_serializer = serializers.TicketSerializer(tickets, many=True)
-        return Response(ticket_serializer.data, status=status.HTTP_201_CREATED)
+            # Tạo vé và gán vào hóa đơn
+            tickets = []
+            for seat in seat_instances:
+                ticket = Ticket.objects.create(
+                    customer=customer,
+                    seat=seat,
+                    bill=bill,
+                    code=self.generate_random_code(10)
+                )
+                tickets.append(ticket)
+
+            # Trả về dữ liệu vé
+            ticket_serializer = serializers.TicketSerializer(tickets, many=True)
+            return Response(ticket_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            Response({"details: Empty Seat "}, status.HTTP_404_NOT_FOUND)
 
 
 class AccountViewSet(viewsets.ViewSet, generics.CreateAPIView):

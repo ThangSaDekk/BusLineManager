@@ -7,3 +7,7 @@ class BusInforPaginator(pagination.PageNumberPagination):
 
 class BusRoutePaginator(pagination.PageNumberPagination):
     page_size = 3
+
+
+class BusLinePaginator(pagination.PageNumberPagination):
+    page_size = 3
