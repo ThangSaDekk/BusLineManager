@@ -71,7 +71,7 @@ class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Ret
     @action(methods=['post'], url_path='busroutes', detail=True)
     def add_busroutes(self, request, pk):
         user = request.user
-        businfor_instance = BusInfor.objects.get(pk=pk)
+        businfor_instance = self.get_object()
         if user.id == businfor_instance.account.id:
             c = businfor_instance.busroute_set.create(businfor=businfor_instance.id,
                                                       code=f"{request.data.get('code')}_{businfor_instance.code}",
@@ -118,8 +118,9 @@ class BusInforDetailsViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.
 
 
 class BusRouteViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPIView):
-    queryset = BusRoute.objects.all()
+    queryset = BusRoute.objects.filter(active=True).order_by('-bias')
     serializer_class = serializers.BusRouteSerializer
+    pagination_class = pagination.BusRoutePaginator
 
     def get_permissions(self):
         if self.action == 'list':
