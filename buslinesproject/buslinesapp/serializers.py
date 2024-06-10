@@ -113,8 +113,7 @@ class DeliverySerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    account = AccountSerializer()
 
     class Meta:
         model = Review
-        fields = ['id', 'rating', 'comment', 'review_time', 'account']
+        fields = ['id', 'rating', 'comment', 'review_time', 'customer']
