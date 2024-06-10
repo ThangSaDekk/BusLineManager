@@ -122,7 +122,7 @@ class Delivery(BaseModel):
     # khóa ngoại chuyến xe
     businfor = models.ForeignKey(BusInfor, on_delete=models.CASCADE)
     # khóa ngoại quan hệ 1 - 1 với hóa đơn
-    bill = models.ForeignKey(Bill, on_delete=models.CASCADE, unique=True, null= True)
+    bill = models.ForeignKey(Bill, on_delete=models.CASCADE, unique=True, null=True)
     # Thuôc tính
     sender_name = models.CharField(max_length=255)  # tên người gửi
     sender_phone = models.CharField(max_length=15)  # số điện thoại người gửi
@@ -136,33 +136,14 @@ class Delivery(BaseModel):
     weight = models.FloatField(default=0)  # Trọng lượng
     content = RichTextField(null=True)
 
-# Đánh giá
-# class Review(BaseModel):
-#     # khóa ngoại tới khách hàng
-#     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-#
-#     class Star(models.IntegerChoices):
-#         BAD = 1
-#         NOT_GOOD = 2
-#         MANUAL = 3
-#         GOOD = 4
-#         EXCELLENT = 5
-#
-#     rating = models.IntegerField(choices=Star)
-#     comment = models.CharField(max_length=255)
-#     review_time = models.DateTimeField(auto_now_add=True)
-#
-#     class Meta:
-#         abstract = True
-#
-#
-# # Đánh giá chuyến xe
-# class RevieBusTimeLine(Review):
-#     # khóa ngoại tới Chuyến xe
-#     bustimeline = models.ForeignKey(BusTimeLine, on_delete=models.CASCADE)
 
-#
-# # Đánh giá giao hàng
-# class ReviewDelivery(Review):
-#     # Khóa ngoại tới Giao hàng
-#     delivery = models.ForeignKey(Delivery, on_delete=models.CASCADE)
+# Đánh giá
+class Review(BaseModel):
+    # khóa ngoại tới khách hàng
+    Star = [1, 2, 3, 4, 5]
+    customer = models.ForeignKey(Account, on_delete=models.CASCADE)
+    businfor = models.ForeignKey(BusInfor, on_delete=models.CASCADE)
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, unique=True)
+    rating = models.IntegerField(choices=Star, default='3')
+    comment = models.CharField(max_length=255)
+    review_time = models.DateTimeField(auto_now_add=True)
