@@ -140,7 +140,13 @@ class Delivery(BaseModel):
 # Đánh giá
 class Review(BaseModel):
     # khóa ngoại tới khách hàng
-    Star = [1, 2, 3, 4, 5]
+    Star = [
+        (1, 'BAD'),
+        (2, 'NOT GOOD'),
+        (3, 'NORMAL'),
+        (4, 'GOOD'),
+        (5, 'EXCELLENT')
+    ]
     customer = models.ForeignKey(Account, on_delete=models.CASCADE)
     businfor = models.ForeignKey(BusInfor, on_delete=models.CASCADE)
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, unique=True)
