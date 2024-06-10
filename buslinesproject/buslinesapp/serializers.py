@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import BusInfor, Account, BusRoute, BusLine, Ticket, Seat, Bill, Delivery
+from .models import BusInfor, Account, BusRoute, BusLine, Ticket, Seat, Bill, Delivery, Review
 
 
 class BusInforSerializer(serializers.ModelSerializer):
@@ -110,3 +110,11 @@ class DeliverySerializer(serializers.ModelSerializer):
     class Meta:
         model = Delivery
         fields = '__all__'
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    account = AccountSerializer()
+
+    class Meta:
+        model = Review
+        fields = ['id', 'rating', 'comment', 'review_time', 'account']

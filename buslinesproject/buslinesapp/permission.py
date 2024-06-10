@@ -39,3 +39,8 @@ class IsEmployeeRole(permissions.BasePermission):
         user_role = request.user.role
 
         return user_role == 'employee'
+
+
+class ReviewOwner(permissions.IsAuthenticated):
+    def has_object_permission(self, request, view, review):
+        return super().has_permission(request, view) and request.user == review.user

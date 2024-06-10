@@ -12,7 +12,7 @@ r.register('busline', views.BusLineDetailsViewSets, 'busline')
 r.register('seat', views.SeatViewSets, 'seat')
 r.register('bills', views.BillViewSet, 'bills')
 r.register('deliverys', views.DeliveryViewSet,'deliverys')
-
+r.register('reviews', views.ReviewViewSet,'reviews')
 
 urlpatterns = [
     path('', include(r.urls)),

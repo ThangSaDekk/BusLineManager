@@ -3,11 +3,11 @@ from statistics import mean
 
 from django.shortcuts import _get_queryset
 from rest_framework import viewsets, generics, parsers, permissions, status
-from .models import BusInfor, Account, Ticket, BusRoute, BusLine, Seat, Bill, Delivery
+from .models import BusInfor, Account, Ticket, BusRoute, BusLine, Seat, Bill, Delivery, Review
 from . import serializers, pagination
 from rest_framework.decorators import action, permission_classes
 from rest_framework.response import Response
-from .permission import IsBusOwnerRole, IsAdminRole, IsCustomerRole, IsEmployeeRole
+from .permission import IsBusOwnerRole, IsAdminRole, IsCustomerRole, IsEmployeeRole, ReviewOwner
 
 
 # [get] lấy thông tin nhà xe /businfors/
@@ -110,6 +110,43 @@ class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Ret
         delivery.bill = bill
         delivery.save()
         return Response(serializers.DeliverySerializer(delivery).data, status.HTTP_201_CREATED)
+
+    @action(methods=['get', 'post'], url_path='reviews', detail=True)
+    def get_and_add_review(self, request, pk):
+        if request.method == 'GET':
+            reviews = self.get_object().review_set.seclect_related('customer').order_by('-id')
+
+            paginator = pagination.ReviewPaginator()
+            page = paginator.paginate_queryset(reviews, request)
+
+            if page is not None:
+                serializer = serializers.ReviewSerializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+            return Response(serializers.ReviewSerializer(reviews, many=True), status.HTTP_200_OK)
+
+        if request.method == 'POST':
+            ticket_code = request.data.get('ticket_code')
+            businfor_instance = self.get_object()
+            print(businfor_instance.id)
+            ticket_instance = Ticket.objects.get(code=ticket_code)
+            print(ticket_instance.customer.id)
+            print(request.user.id)
+            # sự khác biệt giữa get và filter
+            # get lấy đối tượng duy nhất
+            # filter ra tập hợp
+            # lưu ý tránh lỗi
+            print(ticket_instance.seat.busline.busroute.businfor.id)
+            if ticket_instance.seat.busline.busroute.businfor.id == businfor_instance.id and ticket_instance.customer.id == request.user.id:
+                c = businfor_instance.review_set.create(comment=request.data.get('comment'),
+                                                        rating=request.data.get('rating'),
+                                                        customer=request.user,
+                                                        businfor=businfor_instance,
+                                                        ticket=ticket_instance,
+                                                        )
+                return Response(serializers.ReviewSerializer(c).data, status.HTTP_201_CREATED)
+            else:
+                return Response({"details": "Some Error !!"}, status.HTTP_403_FORBIDDEN)
+        return Response({"details": "Phương thức không được hỗ trợ"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class BusInforDetailsViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.DestroyAPIView):
@@ -371,3 +408,9 @@ class DeliveryViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.ListAPI
                 queryset = []
 
         return queryset
+
+
+class ReviewViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.DestroyAPIView):
+    queryset = Review.objects.all()
+    serializer_class = serializers.ReviewSerializer
+    permission_classes = ReviewOwner

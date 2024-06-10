@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Account, BusRoute, BusLine, BusInfor, Seat, Delivery, Ticket, Bill
+from .models import Account, BusRoute, BusLine, BusInfor, Seat, Delivery, Ticket, Review, Bill
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from django import forms
 
@@ -49,11 +49,16 @@ class MyTicketAdmin(admin.ModelAdmin):
     list_display = ['id', 'code', 'customer', 'active']
 
 
+class MyReviewAdmin(admin.ModelAdmin):
+    pass
+
+
 admin.site.register(Account, MyAccountAdmin)
 admin.site.register(BusInfor, MyBusInforAdmin)
 admin.site.register(BusRoute, MyBusRouteAdmin)
 admin.site.register(BusLine, MyBusLineAdmin)
 admin.site.register(Seat, MySeatAdmin)
 admin.site.register(Bill, MyBillAdmin)
-admin.site.register(Ticket, MyTicketAdmin )
+admin.site.register(Ticket, MyTicketAdmin)
 admin.site.register(Delivery)
+admin.site.register(Review)
