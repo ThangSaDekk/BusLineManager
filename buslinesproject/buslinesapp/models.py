@@ -152,3 +152,4 @@ class Review(BaseModel):
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, unique=True)
     rating = models.IntegerField(choices=Star, default='3')
     comment = models.CharField(max_length=255)
+    review_time = models.DateTimeField(auto_now_add=True)
