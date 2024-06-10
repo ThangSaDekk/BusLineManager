@@ -50,7 +50,7 @@ class MyTicketAdmin(admin.ModelAdmin):
 
 
 class MyReviewAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['id','code', 'rating', 'review_time', 'comment']
 
 
 admin.site.register(Account, MyAccountAdmin)
@@ -61,4 +61,4 @@ admin.site.register(Seat, MySeatAdmin)
 admin.site.register(Bill, MyBillAdmin)
 admin.site.register(Ticket, MyTicketAdmin)
 admin.site.register(Delivery)
-admin.site.register(Review)
+admin.site.register(Review, MyReviewAdmin)

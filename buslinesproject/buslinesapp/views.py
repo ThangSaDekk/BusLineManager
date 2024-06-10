@@ -26,12 +26,12 @@ class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Ret
         return Response(serializer.data)
 
     def get_permissions(self):
-        if self.action == 'list' or self.action == 'retrieve':
+        if self.action == ['list', 'retrieve', 'add_delivery']:
             self.permission_classes = [permissions.AllowAny]
         elif self.action == 'create':
             self.permission_classes = [IsBusOwnerRole]
-        elif self.action == 'add_delivery':
-            self.permission_classes = [permissions.AllowAny]
+        elif self.action == 'get_and_add_review':
+            self.permission_classes = [permissions.IsAuthenticated]
         return super().get_permissions()
 
     def get_queryset(self):
@@ -411,4 +411,4 @@ class DeliveryViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.ListAPI
 class ReviewViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.DestroyAPIView):
     queryset = Review.objects.all()
     serializer_class = serializers.ReviewSerializer
-    permission_classes = ReviewOwner
+    permission_classes = [ReviewOwner]
