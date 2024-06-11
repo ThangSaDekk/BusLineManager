@@ -1,13 +1,15 @@
 from queue import Empty
-from statistics import mean
-
-from django.shortcuts import _get_queryset
 from rest_framework import viewsets, generics, parsers, permissions, status
 from .models import BusInfor, Account, Ticket, BusRoute, BusLine, Seat, Bill, Delivery, Review
 from . import serializers, pagination
 from rest_framework.decorators import action, permission_classes
 from rest_framework.response import Response
 from .permission import IsBusOwnerRole, IsAdminRole, IsCustomerRole, IsEmployeeRole, ReviewOwner
+from django.core.mail import send_mail
+from bs4 import BeautifulSoup
+from datetime import datetime
+
+
 
 
 # [get] lấy thông tin nhà xe /businfors/
@@ -406,6 +408,51 @@ class DeliveryViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.ListAPI
                 queryset = []
 
         return queryset
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        businfor_instance = BusInfor.objects.get(id=instance.businfor.id)
+        key1 = 'delivery_status' in request.data
+        key2 = 'receive_time' in request.data
+        key3 = 'active' in request.data
+        html_content = instance.content
+
+        # Sử dụng BeautifulSoup để loại bỏ các thẻ HTML
+        soup = BeautifulSoup(html_content, "html.parser")
+        text_content = soup.get_text()
+
+        if key1 and key2 and len(request.data) == 2:
+            datetime_obj = datetime.fromisoformat(request.data.get('receive_time'))
+            formatted_time = f"{datetime_obj:%d-%m-%Y %H:%M:%S}"
+
+            message = (
+                f"Đơn hàng của quý khách đã được gửi tới người nhận !! \n Cảm ơn quý khách đã sử dụng dịch vụ của nhà xe {businfor_instance.name}!! \n\tMã đơn hàng:{instance.code}\n\tNgười nhận: {instance.receiver_name}\n\tThời gian nhận: {formatted_time} "
+                f"\n Quý khách có thắc mắc liên hệ {businfor_instance.phone} để nhận được trợ giúp")
+            email = instance.sender_email
+            # print(email)
+            name = "Đơn hàng của bạn đã được nhận !!"
+            send_mail(name, message, 'settings.EMAIL_HOST_USER', [email], fail_silently=False)
+
+        if key3 and len(request.data) == 1:
+            message = (
+                f"Đơn hàng của quý khách đã được gửi tới !! \n Quý khách vui lòng đến nhà xe {businfor_instance.name} để nhận hàng !! \n\tMã đơn hàng:{instance.code}\n\tNgười gửi: {instance.sender_name}\n\tLời nhắn: {text_content} "
+                f"\n Quý khách có thắc mắc liên hệ {businfor_instance.phone} để nhận được trợ giúp")
+            email = instance.receiver_email
+            # print(email)
+            name = "Đơn hàng của bạn đã tới !!"
+            send_mail(name, message, 'settings.EMAIL_HOST_USER', [email], fail_silently=False)
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
 
 
 class ReviewViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.DestroyAPIView):
