@@ -10,8 +10,6 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 
 
-
-
 # [get] lấy thông tin nhà xe /businfors/
 class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.RetrieveAPIView):
     queryset = BusInfor.objects.filter(active=True).order_by('-bias')
@@ -32,7 +30,7 @@ class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Ret
             self.permission_classes = [permissions.AllowAny]
         elif self.action == 'create':
             self.permission_classes = [IsBusOwnerRole]
-        elif self.action == 'get_and_add_review':
+        elif self.action in ['get_and_add_review', 'get_add_delivery', 'get_add_busroute']:
             self.permission_classes = [permissions.IsAuthenticated]
         return super().get_permissions()
 
@@ -71,47 +69,82 @@ class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Ret
 
         return Response(serializers.BusInforDetailsSerializer(businfor).data)
 
-    @action(methods=['post'], url_path='busroutes', detail=True)
-    def add_busroutes(self, request, pk):
-        user = request.user
-        businfor_instance = self.get_object()
-        if user.id == businfor_instance.account.id:
-            c = businfor_instance.busroute_set.create(businfor=businfor_instance.id,
-                                                      code=f"{request.data.get('code')}_{businfor_instance.code}",
-                                                      active=True, starting_point=request.data.get('starting_point'),
-                                                      destination=request.data.get('destination'),
-                                                      active_time=request.data.get('active_time'),
-                                                      distance=request.data.get('distance'),
-                                                      estimated_duration=request.data.get('estimated_duration'),
-                                                      frequency=request.data.get('frequency'),
-                                                      fare=request.data.get('fare'))
-            return Response(serializers.BusRouteSerializer(c).data, status=status.HTTP_201_CREATED)
-        else:
-            return Response({"detail": "You don't have permission to post busroute"},
-                            status=status.HTTP_403_FORBIDDEN)
+    @action(methods=['get', 'post'], url_path='busroutes', detail=True)
+    def get_add_busroute(self, request, pk):
+        if request.method == 'GET':
+            if request.user.id == self.get_object().account.id:
+                busroute = self.get_object().busroute_set.filter(active=True).order_by('-id')
+                paginator = pagination.BusRoutePaginator()
+                page = paginator.paginate_queryset(busroute, request)
 
-    @action(methods=['post'], url_path='delivery', detail=True)
-    def add_delivery(self, request, pk):
-        businfor_instance = self.get_object()
-        print(businfor_instance.id)
-        delivery = businfor_instance.delivery_set.create(businfor=businfor_instance.id,
-                                                         code=f'{businfor_instance.code}_{self.generate_random_code(5)}',
-                                                         sender_name=request.data.get('sender_name'),
-                                                         sender_phone=request.data.get('sender_phone'),
-                                                         sender_email=request.data.get('sender_email'),
-                                                         receiver_name=request.data.get('receiver_name'),
-                                                         receiver_phone=request.data.get('receiver_phone'),
-                                                         receiver_email=request.data.get('receiver_email'),
-                                                         weight=request.data.get('weight'),
-                                                         content=request.data.get('content'))
-        bill = Bill.objects.create(
-            code=self.generate_random_code(7),
-            payment_content=f"Payment for {delivery.weight} kg delivery",
-            total=delivery.weight * 10000
-        )
-        delivery.bill = bill
-        delivery.save()
-        return Response(serializers.DeliverySerializer(delivery).data, status.HTTP_201_CREATED)
+                if page is not None:
+                    serializer = serializers.BusRouteSerializer(page, many=True)
+                    return paginator.get_paginated_response(serializer.data)
+                return Response(serializers.BusRouteSerializer(busroute, many=True), status.HTTP_200_OK)
+            else:
+                return Response({"detail": "You don't have permission to get busroute"},
+                                status=status.HTTP_403_FORBIDDEN)
+
+        if request.method == 'POST':
+            user = request.user
+            businfor_instance = self.get_object()
+            if user.id == businfor_instance.account.id:
+                c = businfor_instance.busroute_set.create(businfor=businfor_instance.id,
+                                                          code=f"{request.data.get('code')}_{businfor_instance.code}",
+                                                          active=True,
+                                                          starting_point=request.data.get('starting_point'),
+                                                          destination=request.data.get('destination'),
+                                                          active_time=request.data.get('active_time'),
+                                                          distance=request.data.get('distance'),
+                                                          estimated_duration=request.data.get('estimated_duration'),
+                                                          frequency=request.data.get('frequency'),
+                                                          fare=request.data.get('fare'))
+                return Response(serializers.BusRouteSerializer(c).data, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"detail": "You don't have permission to post busroute"},
+                                status=status.HTTP_403_FORBIDDEN)
+        else:
+            return Response({"details": "Phương thức không được hỗ trợ"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    @action(methods=['get', 'post'], url_path='deliverys', detail=True)
+    def get_add_delivery(self, request, pk):
+        if request.method == 'GET':
+            if request.user.id == self.get_object().account.id:
+                deliverys = self.get_object().delivery_set.filter(active=True).order_by('-id')
+                paginator = pagination.DeliveryPaginator()
+                page = paginator.paginate_queryset(deliverys, request)
+
+                if page is not None:
+                    serializer = serializers.DeliverySerializer(page, many=True)
+                    return paginator.get_paginated_response(serializer.data)
+                return Response(serializers.DeliverySerializer(deliverys, many=True), status.HTTP_200_OK)
+            else:
+                return Response({"detail": "You don't have permission to get delivery"},
+                                status=status.HTTP_403_FORBIDDEN)
+
+        if request.method == 'POST':
+            businfor_instance = self.get_object()
+            print(businfor_instance.id)
+            delivery = businfor_instance.delivery_set.create(businfor=businfor_instance.id,
+                                                             code=f'{businfor_instance.code}_{self.generate_random_code(5)}',
+                                                             sender_name=request.data.get('sender_name'),
+                                                             sender_phone=request.data.get('sender_phone'),
+                                                             sender_email=request.data.get('sender_email'),
+                                                             receiver_name=request.data.get('receiver_name'),
+                                                             receiver_phone=request.data.get('receiver_phone'),
+                                                             receiver_email=request.data.get('receiver_email'),
+                                                             weight=request.data.get('weight'),
+                                                             content=request.data.get('content'))
+            bill = Bill.objects.create(
+                code=self.generate_random_code(7),
+                payment_content=f"Payment for {delivery.weight} kg delivery",
+                total=delivery.weight * 10000
+            )
+            delivery.bill = bill
+            delivery.save()
+            return Response(serializers.DeliverySerializer(delivery).data, status.HTTP_201_CREATED)
+        else:
+            return Response({"details": "Phương thức không được hỗ trợ"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     @action(methods=['get', 'post'], url_path='reviews', detail=True)
     def get_and_add_review(self, request, pk):
