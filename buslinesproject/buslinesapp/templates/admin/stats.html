@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends 'admin/base_site.html' %}
 
 {% block content %}
@@ -138,3 +139,145 @@
     }
 </script>
 {% endblock %}
+=======
+{% extends 'admin/base_site.html' %}
+
+{% block content %}
+<div style="border: 8px solid #ccc; padding: 20px; margin-bottom: 20px;">
+    <h1>THỐNG KÊ TUYẾN XE ĐANG HỌẠT ĐỘNG CỦA NHÀ XE</h1>
+
+    <ul>
+        {% for c in busroute_stats %}
+        <li><strong>{{ c.name }}</strong> có {{ c.c }} tuyến xe hoạt động</li>
+        {% endfor %}
+    </ul>
+
+    <div style="width: 60%; margin-top: 20px;">
+        <canvas id="myChart"></canvas>
+    </div>
+</div>
+
+<div style="border: 8px solid #ccc; padding: 20px; margin-bottom: 20px;">
+    <h1>THỐNG KÊ CHUYẾN XE ĐÃ VÀ ĐANG HỌẠT ĐỘNG CỦA NHÀ XE</h1>
+
+    <ul>
+        {% for c in busline_stats %}
+        <li><strong>{{ c.name }}</strong> có {{ c.c }} chuyến xe hoạt động</li>
+        {% endfor %}
+    </ul>
+
+    <div style="width: 60%; margin-top: 20px;">
+        <canvas id="myChart1"></canvas>
+    </div>
+</div>
+
+<div style="border: 8px solid #ccc; padding: 20px;">
+    <h1>THỐNG KÊ HÓA ĐƠN</h1>
+
+    <ul>
+        {% for c in bill_stats %}
+        <li><strong>{{ c.name }}</strong> có doanh thu {{ c.c }} VND</li>
+        {% endfor %}
+    </ul>
+
+    <div style="width: 60%; margin-top: 20px;">
+        <canvas id="myChart2"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    window.onload = function() {
+        // Data and labels for the first chart
+        let labels1 = [];
+        let data1 = [];
+        {% for c in busroute_stats %}
+            labels1.push('{{ c.name }}');
+            data1.push({{ c.c }});
+        {% endfor %}
+
+        // Initialize the first chart
+        const ctx1 = document.getElementById('myChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: labels1,
+                datasets: [{
+                    label: 'Số lượng tuyến xe',
+                    data: data1,
+                    borderWidth: 1,
+                    backgroundColor: ['red', 'green', 'blue', 'orange', 'purple']
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Data and labels for the second chart
+        let labels2 = [];
+        let data2 = [];
+        {% for c in busline_stats %}
+            labels2.push('{{ c.name }}');
+            data2.push({{ c.c }});
+        {% endfor %}
+
+        // Initialize the second chart
+        const ctx2 = document.getElementById('myChart1').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: labels2,
+                datasets: [{
+                    label: 'Số lượng chuyến xe',
+                    data: data2,
+                    borderWidth: 1,
+                    backgroundColor: ['red', 'green', 'blue', 'orange', 'purple']
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Data and labels for the third chart
+        let labels3 = [];
+        let data3 = [];
+        {% for c in bill_stats %}
+            labels3.push('{{ c.name }}');
+            data3.push({{ c.c }});
+        {% endfor %}
+
+        // Initialize the third chart
+        const ctx3 = document.getElementById('myChart2').getContext('2d');
+        new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: labels3,
+                datasets: [{
+                    label: 'Số lượng hóa đơn',
+                    data: data3,
+                    borderWidth: 1,
+                    backgroundColor: ['red', 'green', 'blue', 'orange', 'purple']
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}
+>>>>>>> origin/main
