@@ -185,7 +185,6 @@ class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Ret
 class BusInforDetailsViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.DestroyAPIView):
     queryset = BusInfor.objects.all()
     serializer_class = serializers.BusInforDetailsSerializer
-    permission_classes = [IsAdminRole]
 
 
 class BusRouteViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPIView):
