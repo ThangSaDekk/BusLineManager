@@ -190,7 +190,6 @@ class BusInforDetailsViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.
 class BusRouteViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPIView):
     queryset = BusRoute.objects.filter(active=True).order_by('-bias')
     serializer_class = serializers.BusRouteSerializer
-    pagination_class = pagination.BusRoutePaginator
 
     def get_permissions(self):
         if self.action == 'list':
