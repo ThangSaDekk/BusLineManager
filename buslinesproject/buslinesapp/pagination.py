@@ -10,7 +10,7 @@ class BusRoutePaginator(pagination.PageNumberPagination):
 
 
 class BusLinePaginator(pagination.PageNumberPagination):
-    page_size = 3
+    page_size = 5
 
 
 class ReviewPaginator(pagination.PageNumberPagination):
