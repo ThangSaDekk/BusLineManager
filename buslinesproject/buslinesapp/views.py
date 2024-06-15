@@ -8,8 +8,6 @@ from .permission import IsBusOwnerRole, IsAdminRole, IsCustomerRole, IsEmployeeR
 from django.core.mail import send_mail
 from bs4 import BeautifulSoup
 from datetime import datetime
-from django.utils import timezone
-from datetime import timedelta
 
 
 # [get] lấy thông tin nhà xe /businfors/
@@ -233,11 +231,7 @@ class BusRouteViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPI
         busroute_instance = self.get_object()
 
         if request.method == 'GET':
-            current_time = timezone.now()
-            one_hour_later = current_time + timedelta(hours=1)
-
-            # Lọc ra busline_set có departure_time lớn hơn current_time + 1 tiếng
-            buslines = busroute_instance.busline_set.filter(active=True, departure_date_time__gt=one_hour_later)
+            buslines = busroute_instance.busline_set.filter(active=True)
 
             paginator = pagination.BusLinePaginator()
             paginated_buslines = paginator.paginate_queryset(buslines, request)
