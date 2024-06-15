@@ -262,7 +262,7 @@ class BusLineDetailsViewSets(viewsets.ViewSet, generics.RetrieveUpdateAPIView):
 
     def get_permissions(self):
         if self.action == 'get_add_seats':
-            self.permission_classes = [permissions.IsAuthenticated]
+            self.permission_classes = [permissions.AllowAny]
         elif self.action in ['partial_update', 'destroy']:
             self.permission_classes = [IsBusOwnerRole]
         return super().get_permissions()
