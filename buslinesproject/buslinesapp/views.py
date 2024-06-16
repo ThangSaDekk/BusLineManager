@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from .permission import IsBusOwnerRole, IsAdminRole, IsCustomerRole, IsEmployeeRole, ReviewOwner
 from django.core.mail import send_mail
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 # [get] lấy thông tin nhà xe /businfors/
@@ -379,7 +379,7 @@ class AccountViewSet(viewsets.ViewSet, generics.CreateAPIView):
     @action(methods=['get', 'patch'], url_path='current-account', detail=False)
     def get_current_user(self, request):
         user = request.user
-        user.last_login = datetime.now()
+        user.last_login = datetime.now() + timedelta(hours=7)
         user.save()
         if request.method.__eq__('PATCH'):
             for k, v in request.data.items():
