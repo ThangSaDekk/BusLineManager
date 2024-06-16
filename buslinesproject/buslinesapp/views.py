@@ -379,6 +379,8 @@ class AccountViewSet(viewsets.ViewSet, generics.CreateAPIView):
     @action(methods=['get', 'patch'], url_path='current-account', detail=False)
     def get_current_user(self, request):
         user = request.user
+        user.last_login = datetime.now()
+        user.save()
         if request.method.__eq__('PATCH'):
             for k, v in request.data.items():
                 setattr(user, k, v)
