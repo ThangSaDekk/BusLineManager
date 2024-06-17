@@ -36,12 +36,15 @@ class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Ret
 
     def get_queryset(self):
         queryset = self.queryset
-        is_delivery = self.request.query_params.get('is_delivery')
+        is_delivery = self.request.query_params.get('is_delivery_enabled')
         name = self.request.query_params.get('name')
+        active = self.request.query_params.get('active')
         if is_delivery:
-            queryset = queryset.filter(is_delivery=is_delivery)
+            queryset = queryset.filter(is_delivery_enabled=is_delivery)
         if name:
             queryset = queryset.filter(name__contains=name)
+        if active:
+            queryset = queryset.filter(active=active)
         return queryset
 
     @staticmethod
