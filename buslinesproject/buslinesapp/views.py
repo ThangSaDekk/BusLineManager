@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 
 # [get] lấy thông tin nhà xe /businfors/
 class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.RetrieveAPIView):
-    queryset = BusInfor.objects.filter(active=True).order_by('-bias')
+    queryset = BusInfor.objects.all().order_by('-bias')
     serializer_class = serializers.BusInforSerializer
     pagination_class = pagination.BusInforPaginator
 
