@@ -138,7 +138,7 @@ class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Ret
             bill = Bill.objects.create(
                 code=self.generate_random_code(7),
                 payment_content=f"Payment for {delivery.weight} kg delivery",
-                total=delivery.weight * 10000
+                total=int(delivery.weight) * 10000
             )
             delivery.bill = bill
             delivery.save()
