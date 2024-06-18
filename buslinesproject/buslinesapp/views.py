@@ -284,13 +284,13 @@ class BusLineDetailsViewSets(viewsets.ViewSet, generics.RetrieveUpdateAPIView):
         if self.action == 'get_add_seats':
             self.permission_classes = [permissions.AllowAny]
         elif self.action in ['partial_update', 'destroy']:
-            self.permission_classes = [IsBusOwnerRole]
+            self.permission_classes = [permissions.IsAuthenticated]
         return super().get_permissions()
 
     def update(self, request, *args, **kwargs):
         user = request.user
         instance = self.get_object()
-        if user.id == instance.busroute.businfor.account.id:
+        if user.id == instance.busroute.businfor.account.id or user.role == 'admin':
             partial = kwargs.pop('partial', False)
             data = request.data
             allow_fields = ['arrival_actual', 'active']
