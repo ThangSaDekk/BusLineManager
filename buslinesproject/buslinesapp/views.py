@@ -200,20 +200,20 @@ class BusInforDetailsViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.
 
 
 class BusRouteViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPIView):
-    queryset = BusRoute.objects.filter(active=True).order_by('-bias')
+    queryset = BusRoute.objects.all().order_by('-bias')
     serializer_class = serializers.BusRouteSerializer
 
     def get_permissions(self):
         if self.action == 'list':
             self.permission_classes = [permissions.AllowAny]
         elif self.action in ['partial_update', 'destroy']:
-            self.permission_classes = [IsBusOwnerRole]
+            self.permission_classes = [permissions.IsAuthenticated]
         return super().get_permissions()
 
     def update(self, request, *args, **kwargs):
         user = request.user
         instance = self.get_object()
-        if user.id == instance.businfor.account.id:
+        if user.id == instance.businfor.account.id or user.role == 'admin':
             partial = kwargs.pop('partial', False)
             serializer = self.get_serializer(instance, data=request.data, partial=partial)
             serializer.is_valid(raise_exception=True)
