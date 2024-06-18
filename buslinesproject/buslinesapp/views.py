@@ -200,7 +200,7 @@ class BusInforDetailsViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.
 
 
 class BusRouteViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPIView):
-    queryset = BusRoute.objects.all().order_by('-bias')
+    queryset = BusRoute.objects.filter(active=True).order_by('-bias')
     serializer_class = serializers.BusRouteSerializer
 
     def get_permissions(self):
