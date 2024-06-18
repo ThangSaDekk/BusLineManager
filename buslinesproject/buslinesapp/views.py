@@ -232,6 +232,7 @@ class BusRouteViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPI
         destination = self.request.query_params.get('destination')
         name = self.request.query_params.get('name')
         active = self.request.query_params.get('active')
+        businfor = self.request.query_params.get('businfor_id')
         if name:
             queryset = queryset.filter(businfor__name__contains=name)
         if starting_point and destination:
@@ -239,6 +240,8 @@ class BusRouteViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPI
             queryset = queryset.filter(destination__contains=destination)
         if active:
             queryset = queryset.filter(active=active)
+        if businfor:
+            queryset = queryset.filter(businfor=businfor)
         return queryset
 
     @action(methods=['get', 'post'], url_path='buslines', detail=True)
