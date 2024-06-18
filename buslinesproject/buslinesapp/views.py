@@ -75,8 +75,17 @@ class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Ret
     @action(methods=['get', 'post'], url_path='busroutes', detail=True)
     def get_add_busroute(self, request, pk):
         if request.method == 'GET':
-            if request.user.id == self.get_object().account.id:
-                busroute = self.get_object().busroute_set.filter(active=True).order_by('-id')
+            if request.user.id == self.get_object().account.id or request.user.role == "admin":
+                active_param = self.request.query_params.get('isActive', None)
+                print(type(active_param))
+                busroute = self.get_object().busroute_set.all().order_by('-id')
+
+                if active_param is not None:
+                    if active_param == '1':
+                        print(1)
+                        busroute = busroute.filter(active=True)
+                    elif active_param == '0':
+                        busroute = busroute.filter(active=False)
                 paginator = pagination.BusRoutePaginator()
                 page = paginator.paginate_queryset(busroute, request)
 
@@ -191,7 +200,7 @@ class BusInforDetailsViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.
 
 
 class BusRouteViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPIView):
-    queryset = BusRoute.objects.filter(active=True).order_by('-bias')
+    queryset = BusRoute.objects.all().order_by('-bias')
     serializer_class = serializers.BusRouteSerializer
 
     def get_permissions(self):
@@ -222,11 +231,14 @@ class BusRouteViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPI
         starting_point = self.request.query_params.get('starting_point')
         destination = self.request.query_params.get('destination')
         name = self.request.query_params.get('name')
+        active = self.request.query_params.get('active')
         if name:
             queryset = queryset.filter(businfor__name__contains=name)
         if starting_point and destination:
             queryset = queryset.filter(starting_point__contains=starting_point)
             queryset = queryset.filter(destination__contains=destination)
+        if active:
+            queryset = queryset.filter(active=active)
         return queryset
 
     @action(methods=['get', 'post'], url_path='buslines', detail=True)
