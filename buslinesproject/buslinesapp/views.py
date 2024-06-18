@@ -249,8 +249,10 @@ class BusRouteViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPI
         busroute_instance = self.get_object()
 
         if request.method == 'GET':
-            buslines = busroute_instance.busline_set.filter(active=True)
-
+            isActive = self.request.query_params.get('isActive')
+            buslines = busroute_instance.busline_set.all()
+            if isActive:
+                buslines = buslines.filter(active=isActive)
             paginator = pagination.BusLinePaginator()
             paginated_buslines = paginator.paginate_queryset(buslines, request)
             serialized_buslines = serializers.BusLineSerializer(paginated_buslines, many=True).data
