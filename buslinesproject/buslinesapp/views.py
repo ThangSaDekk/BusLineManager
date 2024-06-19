@@ -385,16 +385,18 @@ class SeatViewSets(viewsets.ViewSet, generics.UpdateAPIView, generics.DestroyAPI
             Response({"details: Empty Seat "}, status.HTTP_404_NOT_FOUND)
 
 
-class AccountViewSet(viewsets.ViewSet, generics.CreateAPIView):
+class AccountViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.UpdateAPIView, generics.DestroyAPIView):
     queryset = Account.objects.filter(is_active=True)
     serializer_class = serializers.AccountSerializer
+    permission_classes = permissions.AllowAny()
     parser_classes = [parsers.MultiPartParser, ]
 
     def get_permissions(self):
         if self.action in ['get_current_account']:
-            return [permissions.IsAuthenticated()]
-
-        return [permissions.AllowAny()]
+            self.permission_classes = [permissions.IsAuthenticated()]
+        if self.action in ['partial_update', 'destroy']:
+            self.permission_classes = [IsAdminRole]
+        return super().get_permissions()
 
     @action(methods=['get', 'patch'], url_path='current-account', detail=False)
     def get_current_user(self, request):
