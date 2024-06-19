@@ -447,7 +447,7 @@ class BillViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPIView
         return queryset
 
 
-class DeliveryViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.ListAPIView):
+class DeliveryViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.ListAPIView, generics.RetrieveAPIView):
     queryset = Delivery.objects.all()
     serializer_class = serializers.DeliverySerializer
 
@@ -459,8 +459,6 @@ class DeliveryViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.ListAPI
             if code and sender_phone:
                 queryset = queryset.filter(code=code)
                 queryset = queryset.filter(sender_phone=sender_phone)
-            else:
-                queryset = []
 
         return queryset
 
@@ -510,7 +508,12 @@ class DeliveryViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.ListAPI
         return Response(serializer.data)
 
 
-class ReviewViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.DestroyAPIView):
+class ReviewViewSet(viewsets.ViewSet, generics.UpdateAPIView, generics.DestroyAPIView, generics.RetrieveAPIView):
     queryset = Review.objects.all()
     serializer_class = serializers.ReviewSerializer
     permission_classes = [ReviewOwner]
+
+    def get_permissions(self):
+        if self.action == 'retrieve':
+            self.permission_classes = [permissions.IsAuthenticated]
+        return super().get_permissions()
