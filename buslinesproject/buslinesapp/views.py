@@ -388,12 +388,12 @@ class SeatViewSets(viewsets.ViewSet, generics.UpdateAPIView, generics.DestroyAPI
 class AccountViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.UpdateAPIView, generics.DestroyAPIView):
     queryset = Account.objects.filter(is_active=True)
     serializer_class = serializers.AccountSerializer
-    permission_classes = permissions.AllowAny()
+    permission_classes = [permissions.AllowAny]
     parser_classes = [parsers.MultiPartParser, ]
 
     def get_permissions(self):
         if self.action in ['get_current_account']:
-            self.permission_classes = [permissions.IsAuthenticated()]
+            self.permission_classes = [permissions.IsAuthenticated]
         if self.action in ['partial_update', 'destroy']:
             self.permission_classes = [IsAdminRole]
         return super().get_permissions()
