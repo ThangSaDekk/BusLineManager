@@ -26,7 +26,7 @@ class BusInforDetailsSerializer(BusInforSerializer):
     class Meta:
         model = BusInforSerializer.Meta.model
         fields = BusInforSerializer.Meta.fields + ['is_delivery_enabled', 'bias', 'created_date', 'updated_date',
-                                                   'active']
+                                                   'active','account']
 
 
 class BusRouteSerializer(serializers.ModelSerializer):
