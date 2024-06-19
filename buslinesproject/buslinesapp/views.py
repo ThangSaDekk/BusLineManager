@@ -102,7 +102,7 @@ class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Ret
             if user.id == businfor_instance.account.id:
                 c = businfor_instance.busroute_set.create(businfor=businfor_instance.id,
                                                           code=f"{request.data.get('code')}_{businfor_instance.code}",
-                                                          active=True,
+                                                          active=request.data.get('active'),
                                                           starting_point=request.data.get('starting_point'),
                                                           destination=request.data.get('destination'),
                                                           active_time=request.data.get('active_time'),
