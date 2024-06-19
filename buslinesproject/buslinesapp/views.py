@@ -29,7 +29,7 @@ class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Ret
         if self.action == ['list', 'retrieve', 'add_delivery']:
             self.permission_classes = [permissions.AllowAny]
         elif self.action == 'create':
-            self.permission_classes = [IsBusOwnerRole]
+            self.permission_classes = [IsCustomerRole]
         elif self.action in ['get_and_add_review', 'get_add_delivery', 'get_add_busroute']:
             self.permission_classes = [permissions.IsAuthenticated]
         return super().get_permissions()
@@ -409,6 +409,14 @@ class AccountViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.UpdateAP
             user.save()
 
         return Response(serializers.AccountSerializer(user).data)
+
+    @action(methods=['get'], url_path='businfor', detail=True)
+    def get_businfor(self, request):
+        user = request.user
+        if user.role == 'busowner':
+            account_instance = self.get_object()
+        else:
+            return Response({"details"})
 
 
 class TicketViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPIView):
