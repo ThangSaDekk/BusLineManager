@@ -82,7 +82,6 @@ class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Ret
 
                 if active_param is not None:
                     if active_param == '1':
-                        print(1)
                         busroute = busroute.filter(active=True)
                     elif active_param == '0':
                         busroute = busroute.filter(active=False)
@@ -409,14 +408,6 @@ class AccountViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.UpdateAP
             user.save()
 
         return Response(serializers.AccountSerializer(user).data)
-
-    @action(methods=['get'], url_path='businfor', detail=True)
-    def get_businfor(self, request):
-        user = request.user
-        if user.role == 'busowner':
-            account_instance = self.get_object()
-        else:
-            return Response({"details"})
 
 
 class TicketViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPIView):
