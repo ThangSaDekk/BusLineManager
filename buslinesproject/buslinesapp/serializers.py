@@ -48,13 +48,11 @@ class SeatSerializer(serializers.ModelSerializer):
         ref_name = 'SeatSerializer'
 
 
-
 class BillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bill
         fields = '__all__'
         ref_name = 'BillSerializer'
-
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -102,14 +100,6 @@ class TicketSerializer(serializers.ModelSerializer):
         model = Ticket
         fields = '__all__'
         ref_name = 'TicketSerializer'
-
-
-
-
-class BillSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Bill
-        fields = '__all__'
 
 
 class DeliverySerializer(serializers.ModelSerializer):
