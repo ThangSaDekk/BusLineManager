@@ -425,12 +425,10 @@ class TicketViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPIVi
     def get_queryset(self):
         queryset = self.queryset
         code = self.request.query_params.get('code')
-        phone = self.request.query_params.get('phone')
         bill = self.request.query_params.get('bill')
         if self.action == 'list':
-            if code and phone:
+            if code:
                 queryset = queryset.filter(code=code)
-                queryset = queryset.filter(customer__phone=phone)
             if bill:
                 queryset = queryset.filter(bill__code=bill)
 
