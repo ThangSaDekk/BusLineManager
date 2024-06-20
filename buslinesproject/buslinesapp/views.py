@@ -63,7 +63,7 @@ class BusInforViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Ret
             return Response({"detail": "BusInfor not found for this user."}, status=status.HTTP_404_NOT_FOUND)
         if request.method.__eq__('PATCH'):
             for k, v in request.data.items():
-                if k in ["active", "is_delivery_enabled", "bias"]:
+                if k in ["active", "bias"]:
                     return Response({"detail": "You don't have permission to patch this attribute"},
                                     status=status.HTTP_403_FORBIDDEN)
                 else:
