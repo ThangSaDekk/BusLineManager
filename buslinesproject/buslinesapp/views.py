@@ -411,9 +411,12 @@ class AccountViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.UpdateAP
 
     @action(methods=['get'], url_path='tickets', detail=False)
     def get_ticket(self, request):
+        code = self.request.query_params.get('ticket_code')
         user = request.user
         tickets_instance = Ticket.objects.filter(customer__id=user.id)
         if tickets_instance.exists():
+            if code:
+                tickets_instance = tickets_instance.filter(code=code)
             return Response(serializers.TicketSerializer(tickets_instance, many=True).data, status.HTTP_200_OK)
         return Response({"details": "No match Tickets"}, status.HTTP_404_NOT_FOUND)
 
