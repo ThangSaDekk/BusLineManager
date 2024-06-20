@@ -2,7 +2,7 @@ from rest_framework import pagination
 
 
 class BusInforPaginator(pagination.PageNumberPagination):
-    pass
+    page_size = 20
 
 
 class BusRoutePaginator(pagination.PageNumberPagination):
@@ -10,7 +10,7 @@ class BusRoutePaginator(pagination.PageNumberPagination):
 
 
 class BusLinePaginator(pagination.PageNumberPagination):
-    pass
+    page_size = 20
 
 
 class ReviewPaginator(pagination.PageNumberPagination):
@@ -18,7 +18,7 @@ class ReviewPaginator(pagination.PageNumberPagination):
 
 
 class DeliveryPaginator(pagination.PageNumberPagination):
-    pass
+    page_size = 20
 
 
 class BusRoutePaginator(pagination.PageNumberPagination):
