@@ -91,7 +91,8 @@ class AccountSerializer(serializers.ModelSerializer):
 
 
 class TicketSerializer(serializers.ModelSerializer):
-    seat = serializers.SerializerMethodField
+    seat = SeatSerializer()
+    bill = BillSerializer()
 
     class Meta:
         model = Ticket
