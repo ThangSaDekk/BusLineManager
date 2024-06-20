@@ -409,9 +409,17 @@ class AccountViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.UpdateAP
 
         return Response(serializers.AccountSerializer(user).data)
 
+    @action(methods=['get'], url_path='tickets', detail=False)
+    def get_ticket(self, request):
+        user = request.user
+        tickets_instance = Ticket.objects.filter(customer__id=user.id)
+        if tickets_instance.exists():
+            return Response(serializers.TicketSerializer(tickets_instance, many=True).data, status.HTTP_200_OK)
+        return Response({"details": "No match Tickets"}, status.HTTP_404_NOT_FOUND)
+
 
 class TicketViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPIView):
-    queryset = Ticket.objects.all()
+    queryset = Ticket.objects.all().order_by('-active')
     serializer_class = serializers.TicketSerializer
 
     def get_queryset(self):
@@ -423,12 +431,33 @@ class TicketViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPIVi
             if code and phone:
                 queryset = queryset.filter(code=code)
                 queryset = queryset.filter(customer__phone=phone)
-            elif bill:
+            if bill:
                 queryset = queryset.filter(bill__code=bill)
-            else:
-                queryset = []
 
         return queryset
+
+    @action(methods=['post'], url_path='reviews', detail=True)
+    def add_reivews(self, request, pk):
+        ticket_instance = self.get_object()
+        ticket_code = ticket_instance.code
+        businfor = ticket_instance.seat.busline.busroute.businfor
+        print(businfor)
+        # sự khác biệt giữa get và filter
+        # get lấy đối tượng duy nhất
+        # filter ra tập hợp
+        # lưu ý tránh lỗi
+        if ticket_instance.seat.busline.busroute.businfor.id == businfor.id and ticket_instance.customer.id == request.user.id:
+            c = businfor.review_set.create(comment=request.data.get('comment'),
+                                           rating=request.data.get('rating'),
+                                           customer=request.user,
+                                           businfor=businfor,
+                                           ticket=ticket_instance,
+                                           code=ticket_code,
+                                           active=True
+                                           )
+            return Response(serializers.ReviewSerializer(c).data, status.HTTP_201_CREATED)
+        else:
+            return Response({"details": "Some Error !!"}, status.HTTP_403_FORBIDDEN)
 
 
 class BillViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPIView):
