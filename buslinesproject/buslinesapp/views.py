@@ -205,7 +205,7 @@ class BusRouteViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPI
     def get_permissions(self):
         if self.action == 'list':
             self.permission_classes = [permissions.AllowAny]
-        elif self.action in ['partial_update', 'destroy']:
+        elif self.action in ['partial_update', 'destroy', 'get_seats']:
             self.permission_classes = [permissions.IsAuthenticated]
         return super().get_permissions()
 
@@ -272,6 +272,13 @@ class BusRouteViewSet(viewsets.ViewSet, generics.ListAPIView, generics.UpdateAPI
             else:
                 return Response({"detail": "You don't have permission to post busline for other busroute"},
                                 status=status.HTTP_403_FORBIDDEN)
+
+    @action(methods=['get'], url_path='seats', detail=True)
+    def get_seats(self, request,pk):
+        user = request.user
+        busroute_instance = self.get_object()
+        seats_instance = Seat.objects.filter(busline__busroute=busroute_instance.id, status='booked')
+        return Response(serializers.SeatSerializer(seats_instance, many=True).data, status.HTTP_200_OK)
 
 
 class BusLineDetailsViewSets(viewsets.ViewSet, generics.RetrieveUpdateAPIView):
